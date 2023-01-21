@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+  <style>
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li.file-item {
+      cursor: pointer;
+      padding: 12px;
+      border: 1px solid #ddd;
+      margin-bottom: 12px;
+      background-color: #f8f8f8;
+    }
+
+    li.file-item:hover {
+      background-color: #e8e8e8;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: #000;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      position: relative;
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      width: 80%;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 2px;
+    }
+
+    .btn-secondary {
+      background-color: #ccc;
+      color: #fff;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+    }
+  </style>
+
+
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Conteúdo do arquivo</p>
+      <button id="btn-edit" class="btn btn-secondary">Editar</button>
+      <button id="btn-save" class="btn btn-primary" style="display:none;" type="submit"
+        name="save_button">Salvar</button>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul class=flashes>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endwith %}
+
+
+
+
+  <ul>
+    {% for file in files %}
+    {% if os.path.isfile(os.path.join(UPLOAD_FOLDER, file)) %}
+    <li class="file-item" data-filename="{{ file }}">
+      <button><a href="/download/{{ file }}">Download</a></button>
+      <form method="POST" action="/arquivos">
+        <input type="hidden" name="filename" value="{{ file }}">
+        <label>{{ file }}</label>
+        <textarea name="texto" id="texto" value="{{ file_contents[file] }}">{{ file_contents[file] }}</textarea>
+        <input type="file" name="texto" id="texto" class="inputfile" />
+        <button type="submit" name="save_button">Salvar</button>
+      </form>
+      <button id="send-email-button" class="send-email-button" name="submit_button">Enviar email</button>
+
+
+      <form action="/results" method="post" enctype="multipart/form-data" id="send-email-form" style="display:none;"
+        class="send-email-form">
+        <p>De quem<input type="text" name="Name" /></p>
+        <p>Assunto<input type="text" name="Subject" /></p>
+        <p>Para quem (Email)<input type="text" name="Email" /></p>
+        <p>Arquivo<input type="file" name="file" /></p>
+        <p>Submit<input type="submit" name="submit" /></p>
+      </form>
+      <button type="button" name="done_button" onclick="changeBackgroundColor(this)" data-done="false">DONE</button>
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+
+<!--PAGINAÇÃO-->
+  <div id="pagination">
+    <button id="prev-page" disabled>Anterior</button>
+    <select id="page-selector">
+        <option value="1">1</option>
+        <!-- Add options for other pages -->
+    </select>
+    <button id="next-page">Próximo</button>
+</div>
+
+
+
+  <script>
+    //NÃO APAGAR SCRIPT ABAIXO, ELE FAZ O MENU DE ENVIAR EMAIL COMO MODAL
+    $(document).ready(function () {
+      $('.send-email-button').click(function () {
+        $(this).siblings('.send-email-form').toggle();
+      });
+    });
+    //NÃO APAGAR SCRIPT ACIMA
+
+    function downloadFile(filePath) {
+      // Crie um link temporário
+      var link = document.createElement('a');
+      link.setAttribute('href', filePath);
+      link.setAttribute('download', filePath.split('/').pop());
+
+      // Simule um clique no link para iniciar o download
+      link.click();
+    }
+
+
+    //salvar estado botão
+    function changeBackgroundColor(element) {
+      var li = element.parentNode;
+      var filename = li.getAttribute('data-filename');
+      var currentColor = li.style.backgroundColor;
+      var isDone = li.getAttribute('data-done') === 'true';
+      if (!isDone) {
+        li.style.backgroundColor = "green";
+        li.setAttribute('data-done', 'true');
+        localStorage.setItem(filename, 'true');
+      } else {
+        li.style.backgroundColor = "";
+        li.setAttribute('data-done', 'false');
+        localStorage.setItem(filename, 'false');
+      }
+    }
+
+
+
+
+    window.onload = function () {
+      var lis = document.querySelectorAll('li[data-filename]');
+      lis.forEach(function (li) {
+        var filename = li.getAttribute('data-filename');
+        var isDone = localStorage.getItem(filename);
+        if (isDone === 'true') {
+          li.style.backgroundColor = 'green';
+          li.setAttribute('data-done', 'true');
+        } else {
+          li.style.backgroundColor = '';
+          li.setAttribute('data-done', 'false');
+        }
+      });
+    }
+
+//PAGINAÇÃO
+const prevPageBtn = document.getElementById("prev-page");
+const nextPageBtn = document.getElementById("next-page");
+const pageSelector = document.getElementById("page-selector");
+const fileList = document.getElementById("file-list");
+const filesPerPage = 5;
+let currentPage = 1;
+
+prevPageBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+        currentPage -= 1;
+        updatePage();
+    }
+});
+
+nextPageBtn.addEventListener("click", () => {
+    if (currentPage < pageSelector.length) {
+        currentPage += 1;
+        updatePage();
+    }
+});
+
+pageSelector.addEventListener("change", (event) => {
+    currentPage = event.target.value;
+    updatePage();
+});
+
+function updatePage() {
+    const startIndex = (currentPage - 1) * filesPerPage;
+    const endIndex = startIndex + filesPerPage;
+    const fileItems = fileList.querySelectorAll(".file-item");
+
+    for (let i = 0; i < fileItems.length; i++) {
+        if (i >= startIndex && i < endIndex) {
+            fileItems[i].style.display = "block";
+        } else {
+            fileItems[i].style.display = "none";
+        }
+    }
+
+    // update the prevPageBtn and nextPageBtn button state
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === pageSelector.length;
+
+    // update the pageSelector value
+    pageSelector.value = currentPage;
+}
+
+
+
+
+  </script>
+</body>
+
+</html>

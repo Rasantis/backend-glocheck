@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+<h1>Lista de arquivos</h1>
+
+<ul>
+    {% for file in files %}
+    <li>{{ file }}</li>
+    {% endfor %}
+</ul>
+
+<script>
+    // Adiciona o evento click a cada item da lista de arquivos
+    var fileItems = document.querySelectorAll('.file-item');
+    for (var i = 0; i < fileItems.length; i++) {
+        fileItems[i].addEventListener('click', function () {
+            var filename = this.getAttribute('data-filename');
+            openModal(filename);
+        });
+    }
+
+    function openModal(filename) {
+        var filename;
+        // Mostra o modal
+        document.getElementById('myModal').style.display = 'block';
+
+        // Faz a requisição AJAX para buscar o conteúdo do arquivo
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Preenche o conteúdo do modal com o conteúdo do arquivo
+                document.querySelector('#myModal .modal-content p').innerHTML = xhr.responseText;
+            }
+        };
+        xhr.open('GET', '/get-file/' + filename, true);
+        xhr.send();
+    }
+
+    // Fecha o modal ao clicar no botão de fechar
+    var closeButton = document.querySelector('.close');
+    closeButton.addEventListener('click', function () {
+        document.getElementById('myModal').style.display = 'none';
+    });
+
+    // Adiciona o evento click no botão de editar
+    document.getElementById('btn-edit').addEventListener('click', function () {
+        // Troca o conteúdo da tag p para um input de texto
+        var content = document.querySelector('#myModal .modal-content p');
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = content.innerHTML;
+        content.innerHTML = '';
+        content.appendChild(input);
+
+        // Mostra o botão de salvar e esconde o de editar
+        document.getElementById('btn-save').style.display = 'inline-block';
+        this.style.display = 'none';
+    });
+
+
+
+</script>
+</body>
+</html>

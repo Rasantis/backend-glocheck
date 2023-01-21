@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Gráficos</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+        <h1>Gráficos</h1>
+        <div id="grafico-pizza"></div>
+        <script>
+            var path = 'repositorio';
+            var files = os.listdir(path);
+            var num_files = len(files);
+            var data = [{
+                values: [num_files],
+                labels: ['Arquivos'],
+                type: 'pie'
+            }];
+            var layout = {
+                title: 'Quantidade de arquivos no repositório'
+            };
+            Plotly.newPlot('grafico-pizza', data, layout);
+        </script>
+    </body>
+</html>
