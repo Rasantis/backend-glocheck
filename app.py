@@ -91,7 +91,7 @@ def get_file(filename):
 
 # Rota
 @app.route('/arquivos', methods=['GET', 'POST'])
-def show_repository():
+def show_repository(page=0):
     if request.method == 'GET':
         # Obtém uma lista de tuplas, onde cada tupla contém o nome do arquivo e a data de criação
         files = [(f, os.stat(os.path.join(UPLOAD_FOLDER, f)).st_ctime) for f in os.listdir(UPLOAD_FOLDER)]
@@ -110,7 +110,7 @@ def show_repository():
                 file_contents[file] = f.read()
 
         # Renderiza a página HTML com os arquivos ordenados por data de criação
-        return render_template('arquivos.html', files=files, os=os, UPLOAD_FOLDER=UPLOAD_FOLDER, file_contents=file_contents)
+        return render_template('arquivos.html', files=files, os=os, UPLOAD_FOLDER=UPLOAD_FOLDER, file_contents=file_contents, page=page)
 
     elif request.method == 'POST':
         # Obter o nome do arquivo e o arquivo enviado pelo usuário
